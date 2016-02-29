@@ -1,0 +1,5 @@
+﻿  FaceTracking_dll.cpp
+     ライブラリ D:\MyData\Program\VisualStudio\RealsenseSDK_FaceTracking_dll\Debug\FaceTracking_dll.lib とオブジェクト D:\MyData\Program\VisualStudio\RealsenseSDK_FaceTracking_dll\Debug\FaceTracking_dll.exp を作成中
+LINK : warning LNK4098: defaultlib 'LIBCMT' は他のライブラリの使用と競合しています。/NODEFAULTLIB:library を使用してください。
+  FaceTracking_dll.vcxproj -> D:\MyData\Program\VisualStudio\RealsenseSDK_FaceTracking_dll\Debug\FaceTracking_dll.dll
+  FaceTracking_dll.vcxproj -> D:\MyData\Program\VisualStudio\RealsenseSDK_FaceTracking_dll\Debug\FaceTracking_dll.pdb (Partial PDB)
