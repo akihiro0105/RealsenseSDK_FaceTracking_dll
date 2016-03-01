@@ -44,84 +44,96 @@ extern "C" {
 		config->QueryExpressions()->EnableAllExpressions();
 		config->ApplyChanges();
 
-		m_output = faceModule->CreateOutput();
-
 		while (true)
 		{
-			senseManager->AcquireFrame(true);
-			if (Stopflag == true)
+			m_output = faceModule->CreateOutput();
+			bool landflag = false;
+
+			while (true)
 			{
-				senseManager->ReleaseFrame();
-				break;
-			}
-			m_output->Update();
-			PXCCapture::Sample* sample = senseManager->QueryFaceSample();
-			if (sample != NULL)
-			{
-				int numFaces = m_output->QueryNumberOfDetectedFaces();
-				for (int j = 0; j < numFaces; j++) {
-					PXCFaceData::Face* trackedFace = m_output->QueryFaceByIndex(0);
-					if (trackedFace != NULL) {
+				senseManager->AcquireFrame(true);
+				if (Stopflag == true|| landflag==true)
+				{
+					senseManager->ReleaseFrame();
+					break;
+				}
+				m_output->Update();
+				PXCCapture::Sample* sample = senseManager->QueryFaceSample();
+				if (sample != NULL)
+				{
+					int numFaces = m_output->QueryNumberOfDetectedFaces();
+					for (int j = 0; j < numFaces; j++) {
+						PXCFaceData::Face* trackedFace = m_output->QueryFaceByIndex(0);
+						if (trackedFace != NULL) {
 
-						PXCImage::ImageInfo info = sample->color->QueryInfo();
-						int width = info.width;
-						int height = info.height;
+							PXCImage::ImageInfo info = sample->color->QueryInfo();
+							int width = info.width;
+							int height = info.height;
 
-						//Detection
-						if (trackedFace->QueryDetection() != NULL) {
-							PXCFaceData::DetectionData* detectionData = trackedFace->QueryDetection();
-							PXCRectI32 rectangle;
-							detectionData->QueryBoundingRect(&rectangle);
-							detection[0] = width / 2 - (rectangle.x + rectangle.w / 2);
-							detection[1] = height / 2 - (rectangle.y + rectangle.h / 2);
-							detection[2] = rectangle.w;
-						}
-
-						//Landmark
-						if (trackedFace->QueryLandmarks() != NULL) {
-							PXCFaceData::LandmarksData* landmarkData = trackedFace->QueryLandmarks();
-							PXCFaceData::LandmarkPoint* m_landmarkPoints = new PXCFaceData::LandmarkPoint[config->landmarks.numLandmarks];
-							landmarkData->QueryPoints(m_landmarkPoints);
-							for (int i = 0; i < 78; i++)
-							{
-								landmark[2 * i] = (float)width / 2 - m_landmarkPoints[i].image.x;
-								landmark[2 * i + 1] = (float)height / 2 - m_landmarkPoints[i].image.y;
+							//Detection
+							if (trackedFace->QueryDetection() != NULL) {
+								PXCFaceData::DetectionData* detectionData = trackedFace->QueryDetection();
+								PXCRectI32 rectangle;
+								detectionData->QueryBoundingRect(&rectangle);
+								detection[0] = width / 2 - (rectangle.x + rectangle.w / 2);
+								detection[1] = height / 2 - (rectangle.y + rectangle.h / 2);
+								detection[2] = rectangle.w;
 							}
-							float bufx = landmark[20] - landmark[36];
-							float bufy = landmark[21] - landmark[37];
-							//yaw
-							float len1 = sqrt(pow((landmark[21] - landmark[53]), 2) + pow((landmark[20] - landmark[52]), 2));
-							float len2 = sqrt(pow((landmark[37] - landmark[53]), 2) + pow((landmark[36] - landmark[52]), 2));
-							Rotation[0] = -len1 + len2;
-							//pitch
-							float fx = landmark[52] - (bufx / 2 + landmark[36]);
-							float fy = landmark[53] - (bufy / 2 + landmark[37]);
-							float pitch = sqrt(pow(fy, 2) + pow(fx, 2));
-							if (fy < 0) pitch *= -1;
-							Rotation[1] = pitch;
-							//roll
-							if (bufy != 0)Rotation[2] = -atan2(bufy, bufx);
-						}
 
-						//Expression
-						if (trackedFace->QueryExpressions() != NULL) {
-							PXCFaceData::ExpressionsData* expressionsData = trackedFace->QueryExpressions();
-							PXCFaceData::ExpressionsData::FaceExpressionResult expressionResult[21];
-							for (int i = 0; i < 22; i++) {
-								expressionsData->QueryExpression((PXCFaceData::ExpressionsData::FaceExpression)i, &expressionResult[i]);
-								expression[i] = (int)expressionResult[i].intensity;
+							//Landmark
+							if (trackedFace->QueryLandmarks() != NULL) {
+								PXCFaceData::LandmarksData* landmarkData = trackedFace->QueryLandmarks();
+								PXCFaceData::LandmarkPoint* m_landmarkPoints = new PXCFaceData::LandmarkPoint[config->landmarks.numLandmarks];
+								landmarkData->QueryPoints(m_landmarkPoints);
+								for (int i = 0; i < 78; i++)
+								{
+									landmark[2 * i] = (float)width / 2 - m_landmarkPoints[i].image.x;
+									landmark[2 * i + 1] = (float)height / 2 - m_landmarkPoints[i].image.y;
+								}
+								float bufx = landmark[20] - landmark[36];
+								float bufy = landmark[21] - landmark[37];
+								//yaw
+								float len1 = sqrt(pow((landmark[21] - landmark[53]), 2) + pow((landmark[20] - landmark[52]), 2));
+								float len2 = sqrt(pow((landmark[37] - landmark[53]), 2) + pow((landmark[36] - landmark[52]), 2));
+								Rotation[0] = -len1 + len2;
+								//pitch
+								float fx = landmark[52] - (bufx / 2 + landmark[36]);
+								float fy = landmark[53] - (bufy / 2 + landmark[37]);
+								float pitch = sqrt(pow(fy, 2) + pow(fx, 2));
+								if (fy < 0) pitch *= -1;
+								Rotation[1] = pitch;
+								//roll
+								if (bufy != 0)Rotation[2] = -atan2(bufy, bufx);
+							}
+							else {
+								landflag == true;
+							}
+
+							//Expression
+							if (trackedFace->QueryExpressions() != NULL) {
+								PXCFaceData::ExpressionsData* expressionsData = trackedFace->QueryExpressions();
+								PXCFaceData::ExpressionsData::FaceExpressionResult expressionResult[21];
+								for (int i = 0; i < 22; i++) {
+									expressionsData->QueryExpression((PXCFaceData::ExpressionsData::FaceExpression)i, &expressionResult[i]);
+									expression[i] = (int)expressionResult[i].intensity;
+								}
 							}
 						}
 					}
 				}
+				senseManager->ReleaseFrame();
 			}
-			senseManager->ReleaseFrame();
+			m_output->Release();
+			if (Stopflag == true)
+			{
+				break;
+			}
 		}
-		m_output->Release();
 		config->Release();
 		senseManager->Close();
 		senseManager->Release();
 
+		//
 		session->Release();
 		return 0;
 	}

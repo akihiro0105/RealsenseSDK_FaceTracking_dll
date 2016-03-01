@@ -1,4 +1,5 @@
 ﻿  FaceTracking_dll.cpp
+FaceTracking_dll.cpp(109): warning C4553: '==': 演算子にプログラム上の作用がありません。'=' を意図しましたか?
      ライブラリ D:\MyData\Program\VisualStudio\RealsenseSDK_FaceTracking_dll\Release\FaceTracking_dll.lib とオブジェクト D:\MyData\Program\VisualStudio\RealsenseSDK_FaceTracking_dll\Release\FaceTracking_dll.exp を作成中
 LINK : warning LNK4098: defaultlib 'LIBCMT' は他のライブラリの使用と競合しています。/NODEFAULTLIB:library を使用してください。
   コード生成しています。
